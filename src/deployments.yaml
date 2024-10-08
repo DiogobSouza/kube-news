@@ -1,0 +1,103 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kube-news-deployment
+  labels:
+    app: kube-news
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: kube-news
+  template:
+    metadata:
+      labels:
+        app: kube-news
+    spec:
+      containers:
+      - name: kube-news
+        image: diogosouza18/live-kube-news
+        ports:
+        - containerPort: 3000
+        env:
+        - name: DB_DATABASE
+          value: "kubenews"
+        - name: DB_USERNAME
+          value: "kubenews"
+        - name: DB_PASSWORD
+          value: "Pg#123"
+        - name: DB_HOST
+          value: "postgres-service"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kube-news-service
+spec:
+  type: ClusterIP
+  selector:
+    app: kube-news
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-deployment
+  labels:
+    app: postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:13
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_DB
+          value: "kubenews"
+        - name: POSTGRES_USER
+          value: "kubenews"
+        - name: POSTGRES_PASSWORD
+          value: "Pg#123"
+        volumeMounts:
+        - name: postgres-storage
+          mountPath: /var/lib/postgresql/data
+      volumes:
+      - name: postgres-storage
+        persistentVolumeClaim:
+          claimName: postgres-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-service
+spec:
+  type: ClusterIP
+  selector:
+    app: postgres
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi

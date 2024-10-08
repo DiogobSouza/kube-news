@@ -39,7 +39,7 @@ jobs:
         with:
           images: diogosouza18/live-kube-news:v${{github.run_number}}
           manifests: |
-            .src/deployment.yaml
+            ./src/deployments.yaml
     
       
             

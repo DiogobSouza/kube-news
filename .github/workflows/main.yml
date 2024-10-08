@@ -22,6 +22,17 @@ jobs:
           file: ./src/dockerfile
           push: true
           tags: |
-            diogosouza18/live-kube-news:${{github.run_number}}
+            diogosouza18/live-kube-news:v${{github.run_number}}
             diogosouza18/live-kube-news:latest
+  CD:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4.2.1
+      - name: Definindo o context
+        uses: Azure/k8s-set-context@v3.0
+        with:
+          method: kubeconfig
+          kubeconfig: ${{secrets.K8S_CONFIG}}
+      
             
